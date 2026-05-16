@@ -1,16 +1,14 @@
 package com.jcaa.usersmanagement.infrastructure.config;
 
+import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertSame;
-import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.mockStatic;
 
-import com.jcaa.usersmanagement.infrastructure.adapter.persistence.exception.PersistenceException;
 import com.jcaa.usersmanagement.infrastructure.entrypoint.desktop.controller.UserController;
 import java.sql.Connection;
 import java.sql.DriverManager;
-import java.sql.SQLException;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -22,9 +20,8 @@ import org.mockito.junit.jupiter.MockitoExtension;
  * Tests for DependencyContainer.
  *
  * <p>Covers: full wiring succeeds and exposes a non-null UserController, the same UserController
- * instance is returned on every call (immutable composition graph), and a database connection
- * failure during construction propagates as PersistenceException. DriverManager is mocked
- * statically so no real database is required.
+ * instance is returned on every call (immutable composition graph), and the constructor completes
+ * without a real database because HikariCP initialises its pool lazily.
  */
 @DisplayName("DependencyContainer")
 @ExtendWith(MockitoExtension.class)
@@ -81,27 +78,18 @@ class DependencyContainerTest {
     }
   }
 
-  // ── constructor — database failure → PersistenceException
+  // ── constructor — HikariCP lazy pool: no connection made during construction
 
   @Test
-  @DisplayName("constructor propagates PersistenceException when the database connection fails")
-  void shouldPropagatePersistenceExceptionWhenDatabaseConnectionFails() {
-    // Arrange — exception built before the static mock to avoid intercepting DriverManager
-    // internal calls during SQLException construction
-    final SQLException cause = new SQLException("Connection refused");
-    try (final MockedStatic<DriverManager> mockedDriverManager = mockStatic(DriverManager.class)) {
-      mockedDriverManager
-          .when(
-              () ->
-                  DriverManager.getConnection(
-                      any(String.class), any(String.class), any(String.class)))
-          .thenThrow(cause);
+  @DisplayName("constructor succeeds without a reachable database because HikariCP pool is lazy")
+  void shouldConstructSuccessfullyBecauseHikariCpIsLazy() {
+    // With HikariCP DataSource the connection pool initialises lazily — no database connection
+    // is attempted during DependencyContainer construction.  Connection failures surface only
+    // when the first SQL query is executed by a repository method.
 
-      // Act & Assert
-      assertThrows(
-          PersistenceException.class,
-          DependencyContainer::new,
-          "PersistenceException must propagate without wrapping when DriverManager throws SQLException");
-    }
+    // Act + Assert
+    assertDoesNotThrow(
+        DependencyContainer::new,
+        "DependencyContainer must succeed during construction even without a reachable database");
   }
 }

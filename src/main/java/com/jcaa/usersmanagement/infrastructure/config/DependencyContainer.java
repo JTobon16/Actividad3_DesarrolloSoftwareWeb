@@ -16,12 +16,11 @@ import com.jcaa.usersmanagement.application.service.UpdateUserService;
 import com.jcaa.usersmanagement.infrastructure.adapter.email.JavaMailEmailSenderAdapter;
 import com.jcaa.usersmanagement.infrastructure.adapter.email.SmtpConfig;
 import com.jcaa.usersmanagement.infrastructure.adapter.persistence.config.DatabaseConfig;
-import com.jcaa.usersmanagement.infrastructure.adapter.persistence.config.DatabaseConnectionFactory;
 import com.jcaa.usersmanagement.infrastructure.adapter.persistence.repository.UserRepositoryMySQL;
 import com.jcaa.usersmanagement.infrastructure.entrypoint.desktop.controller.UserController;
-
-import java.sql.Connection;
+import com.zaxxer.hikari.HikariDataSource;
 import jakarta.validation.Validator;
+import javax.sql.DataSource;
 
 public final class DependencyContainer {
 
@@ -43,8 +42,8 @@ public final class DependencyContainer {
   public DependencyContainer() {
     final AppProperties properties = new AppProperties();
 
-    final Connection connection = buildDatabaseConnection(properties);
-    final UserRepositoryMySQL userRepository = new UserRepositoryMySQL(connection);
+    final DataSource dataSource = buildDataSource(properties);
+    final UserRepositoryMySQL userRepository = new UserRepositoryMySQL(dataSource);
 
     final JavaMailEmailSenderAdapter emailSender =
         new JavaMailEmailSenderAdapter(buildSmtpConfig(properties));
@@ -77,7 +76,7 @@ public final class DependencyContainer {
     return userController;
   }
 
-  private static Connection buildDatabaseConnection(final AppProperties properties) {
+  private static DataSource buildDataSource(final AppProperties properties) {
     final DatabaseConfig config =
         new DatabaseConfig(
             properties.get(DB_HOST),
@@ -85,7 +84,11 @@ public final class DependencyContainer {
             properties.get(DB_NAME),
             properties.get(DB_USER),
             properties.get(DB_PASSWORD));
-    return DatabaseConnectionFactory.createConnection(config);
+    final HikariDataSource ds = new HikariDataSource();
+    ds.setJdbcUrl(config.buildJdbcUrl());
+    ds.setUsername(config.username());
+    ds.setPassword(config.password());
+    return ds;
   }
 
   private static SmtpConfig buildSmtpConfig(final AppProperties properties) {

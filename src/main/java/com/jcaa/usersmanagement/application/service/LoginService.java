@@ -11,11 +11,13 @@ import jakarta.validation.ConstraintViolation;
 import jakarta.validation.ConstraintViolationException;
 import jakarta.validation.Validator;
 import lombok.RequiredArgsConstructor;
+import org.springframework.stereotype.Service;
 
 import java.util.Set;
 
+@Service
 @RequiredArgsConstructor
-public final class LoginService implements LoginUseCase {
+public class LoginService implements LoginUseCase {
 
   private final GetUserByEmailPort getUserByEmailPort;
   private final Validator validator;

@@ -11,11 +11,13 @@ import jakarta.validation.ConstraintViolation;
 import jakarta.validation.ConstraintViolationException;
 import jakarta.validation.Validator;
 import lombok.RequiredArgsConstructor;
+import org.springframework.stereotype.Service;
 
 import java.util.Set;
 
+@Service
 @RequiredArgsConstructor
-public final class DeleteUserService implements DeleteUserUseCase {
+public class DeleteUserService implements DeleteUserUseCase {
 
   private final DeleteUserPort deleteUserPort;
   private final GetUserByIdPort getUserByIdPort;

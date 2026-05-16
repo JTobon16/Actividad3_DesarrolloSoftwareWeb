@@ -19,6 +19,7 @@ import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.List;
 import java.util.Optional;
+import javax.sql.DataSource;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -47,6 +48,7 @@ class UserRepositoryMySQLTest {
   private static final String CREATED_AT = "2024-01-01";
   private static final String UPDATED_AT = "2024-01-02";
 
+  @Mock private DataSource dataSource;
   @Mock private Connection connection;
   @Mock private PreparedStatement statement;
   @Mock private ResultSet resultSet;
@@ -58,7 +60,7 @@ class UserRepositoryMySQLTest {
 
   @BeforeEach
   void setUp() {
-    repository = new UserRepositoryMySQL(connection);
+    repository = new UserRepositoryMySQL(dataSource);
     userId = new UserId(ID);
     userEmail = new UserEmail(EMAIL);
     userModel =
@@ -71,8 +73,9 @@ class UserRepositoryMySQLTest {
             UserStatus.ACTIVE);
   }
 
-  // Helper: wire connection → statement → resultSet
+  // Helper: wire dataSource → connection → statement → resultSet
   private void configureStatementAndResultSet() throws SQLException {
+    when(dataSource.getConnection()).thenReturn(connection);
     when(connection.prepareStatement(anyString())).thenReturn(statement);
     when(statement.executeQuery()).thenReturn(resultSet);
   }
@@ -116,6 +119,7 @@ class UserRepositoryMySQLTest {
   @DisplayName("save() throws PersistenceException when INSERT raises SQLException")
   void shouldThrowPersistenceExceptionWhenInsertFails() throws SQLException {
     // Arrange
+    when(dataSource.getConnection()).thenReturn(connection);
     when(connection.prepareStatement(anyString())).thenReturn(statement);
     when(statement.executeUpdate()).thenThrow(new SQLException("Insert failed"));
 
@@ -165,6 +169,7 @@ class UserRepositoryMySQLTest {
   @DisplayName("update() throws PersistenceException when UPDATE raises SQLException")
   void shouldThrowPersistenceExceptionWhenUpdateFails() throws SQLException {
     // Arrange
+    when(dataSource.getConnection()).thenReturn(connection);
     when(connection.prepareStatement(anyString())).thenReturn(statement);
     when(statement.executeUpdate()).thenThrow(new SQLException("Update failed"));
 
@@ -192,7 +197,7 @@ class UserRepositoryMySQLTest {
     assertAll(
         "getById() found",
         () -> assertTrue(result.isPresent(), "must be present"),
-        () -> assertEquals(ID, result.get().getId().value(), "id"));
+        () -> assertEquals(ID, result.map(u -> u.getId().value()).orElse(null), "id"));
   }
 
   // ── getById() — no row → Optional.empty()
@@ -217,6 +222,7 @@ class UserRepositoryMySQLTest {
   @DisplayName("getById() throws PersistenceException when prepareStatement raises SQLException")
   void shouldThrowPersistenceExceptionOnGetByIdFailure() throws SQLException {
     // Arrange
+    when(dataSource.getConnection()).thenReturn(connection);
     when(connection.prepareStatement(anyString())).thenThrow(new SQLException("Query failed"));
 
     // Act + Assert
@@ -232,6 +238,7 @@ class UserRepositoryMySQLTest {
   @DisplayName("getById() throws PersistenceException when executeQuery raises SQLException")
   void shouldThrowPersistenceExceptionWhenGetByIdExecuteQueryFails() throws SQLException {
     // Arrange
+    when(dataSource.getConnection()).thenReturn(connection);
     when(connection.prepareStatement(anyString())).thenReturn(statement);
     when(statement.executeQuery()).thenThrow(new SQLException("Execute query failed"));
 
@@ -249,6 +256,7 @@ class UserRepositoryMySQLTest {
       "getById() throws PersistenceException when PreparedStatement.close() raises SQLException")
   void shouldThrowPersistenceExceptionWhenGetByIdStatementCloseFails() throws SQLException {
     // Arrange
+    when(dataSource.getConnection()).thenReturn(connection);
     when(connection.prepareStatement(anyString())).thenReturn(statement);
     when(statement.executeQuery()).thenReturn(resultSet);
     when(resultSet.next()).thenReturn(false);
@@ -278,7 +286,7 @@ class UserRepositoryMySQLTest {
     assertAll(
         "getByEmail() found",
         () -> assertTrue(result.isPresent(), "must be present"),
-        () -> assertEquals(EMAIL, result.get().getEmail().value(), "email"));
+        () -> assertEquals(EMAIL, result.map(u -> u.getEmail().value()).orElse(null), "email"));
   }
 
   // ── getByEmail() — no row → Optional.empty()
@@ -303,6 +311,7 @@ class UserRepositoryMySQLTest {
   @DisplayName("getByEmail() throws PersistenceException when prepareStatement raises SQLException")
   void shouldThrowPersistenceExceptionOnGetByEmailFailure() throws SQLException {
     // Arrange
+    when(dataSource.getConnection()).thenReturn(connection);
     when(connection.prepareStatement(anyString())).thenThrow(new SQLException("Query failed"));
 
     // Act + Assert
@@ -318,6 +327,7 @@ class UserRepositoryMySQLTest {
   @DisplayName("getByEmail() throws PersistenceException when executeQuery raises SQLException")
   void shouldThrowPersistenceExceptionWhenGetByEmailExecuteQueryFails() throws SQLException {
     // Arrange
+    when(dataSource.getConnection()).thenReturn(connection);
     when(connection.prepareStatement(anyString())).thenReturn(statement);
     when(statement.executeQuery()).thenThrow(new SQLException("Execute query failed"));
 
@@ -336,6 +346,7 @@ class UserRepositoryMySQLTest {
       "getByEmail() throws PersistenceException when PreparedStatement.close() raises SQLException")
   void shouldThrowPersistenceExceptionWhenGetByEmailStatementCloseFails() throws SQLException {
     // Arrange
+    when(dataSource.getConnection()).thenReturn(connection);
     when(connection.prepareStatement(anyString())).thenReturn(statement);
     when(statement.executeQuery()).thenReturn(resultSet);
     when(resultSet.next()).thenReturn(false);
@@ -374,6 +385,7 @@ class UserRepositoryMySQLTest {
   @DisplayName("getAll() throws PersistenceException when the query raises SQLException")
   void shouldThrowPersistenceExceptionOnGetAllFailure() throws SQLException {
     // Arrange
+    when(dataSource.getConnection()).thenReturn(connection);
     when(connection.prepareStatement(anyString())).thenThrow(new SQLException("Query failed"));
 
     // Act + Assert
@@ -389,6 +401,7 @@ class UserRepositoryMySQLTest {
   @DisplayName("delete() executes DELETE without throwing")
   void shouldDeleteUserWithoutThrowing() throws SQLException {
     // Arrange
+    when(dataSource.getConnection()).thenReturn(connection);
     when(connection.prepareStatement(anyString())).thenReturn(statement);
 
     // Act + Assert
@@ -403,6 +416,7 @@ class UserRepositoryMySQLTest {
   @DisplayName("delete() throws PersistenceException when DELETE raises SQLException")
   void shouldThrowPersistenceExceptionWhenDeleteFails() throws SQLException {
     // Arrange
+    when(dataSource.getConnection()).thenReturn(connection);
     when(connection.prepareStatement(anyString())).thenThrow(new SQLException("Delete failed"));
 
     // Act + Assert

@@ -6,27 +6,30 @@ import com.jcaa.usersmanagement.domain.model.EmailDestinationModel;
 import com.jcaa.usersmanagement.domain.model.UserModel;
 import java.util.Objects;
 import lombok.RequiredArgsConstructor;
-import lombok.extern.java.Log;
+import lombok.extern.slf4j.Slf4j;
+import org.springframework.stereotype.Service;
 
 import java.io.IOException;
 import java.io.InputStream;
 import java.nio.charset.StandardCharsets;
 import java.util.Map;
-import java.util.logging.Level;
 
-@Log
+@Slf4j
+@Service
 @RequiredArgsConstructor
-public final class EmailNotificationService {
+public class EmailNotificationService {
 
-  private static final String SUBJECT_CREATED = "Tu cuenta ha sido creada — Gestión de Usuarios";
-  private static final String SUBJECT_UPDATED =
-      "Tu cuenta ha sido actualizada — Gestión de Usuarios";
+  private static final String SUBJECT_CREATED = "Tu cuenta ha sido creada — Gestion de Usuarios";
+  private static final String SUBJECT_UPDATED  = "Tu cuenta ha sido actualizada — Gestion de Usuarios";
 
   private static final String TOKEN_NAME     = "name";
   private static final String TOKEN_EMAIL    = "email";
   private static final String TOKEN_PASSWORD = "password";
   private static final String TOKEN_ROLE     = "role";
   private static final String TOKEN_STATUS   = "status";
+
+  private static final String LOG_SEND_FAILED =
+      "[EmailNotificationService] correo no enviado. Causa: {}";
 
   private final EmailSenderPort emailSenderPort;
 
@@ -94,10 +97,7 @@ public final class EmailNotificationService {
     try {
       emailSenderPort.send(destination);
     } catch (final EmailSenderException senderException) {
-      log.log(
-          Level.WARNING,
-          "[EmailNotificationService] No se pudo enviar correo a: {0}. Causa: {1}",
-          new Object[] {destination.getDestinationEmail(), senderException.getMessage()});
+      log.warn(LOG_SEND_FAILED, senderException.getMessage(), senderException);
       throw senderException;
     }
   }

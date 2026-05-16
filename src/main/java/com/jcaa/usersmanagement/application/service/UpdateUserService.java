@@ -15,11 +15,13 @@ import jakarta.validation.ConstraintViolation;
 import jakarta.validation.ConstraintViolationException;
 import jakarta.validation.Validator;
 import lombok.RequiredArgsConstructor;
+import org.springframework.stereotype.Service;
 
 import java.util.Set;
 
+@Service
 @RequiredArgsConstructor
-public final class UpdateUserService implements UpdateUserUseCase {
+public class UpdateUserService implements UpdateUserUseCase {
 
   private final UpdateUserPort updateUserPort;
   private final GetUserByIdPort getUserByIdPort;

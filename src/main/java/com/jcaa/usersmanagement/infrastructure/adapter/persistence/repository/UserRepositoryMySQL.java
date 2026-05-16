@@ -14,8 +14,10 @@ import com.jcaa.usersmanagement.infrastructure.adapter.persistence.dto.UserPersi
 import com.jcaa.usersmanagement.infrastructure.adapter.persistence.exception.PersistenceException;
 import com.jcaa.usersmanagement.infrastructure.adapter.persistence.mapper.UserPersistenceMapper;
 import lombok.RequiredArgsConstructor;
-import lombok.extern.java.Log;
+import lombok.extern.slf4j.Slf4j;
+import org.springframework.stereotype.Repository;
 
+import javax.sql.DataSource;
 import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
@@ -23,9 +25,10 @@ import java.sql.SQLException;
 import java.util.List;
 import java.util.Optional;
 
-@Log
+@Slf4j
+@Repository
 @RequiredArgsConstructor
-public final class UserRepositoryMySQL
+public class UserRepositoryMySQL
     implements SaveUserPort,
         UpdateUserPort,
         GetUserByIdPort,
@@ -61,7 +64,7 @@ public final class UserRepositoryMySQL
         "DELETE FROM users "
         + "WHERE id = ?";
 
-  private final Connection connection;
+  private final DataSource dataSource;
 
   @Override
   public UserModel save(final UserModel user) {
@@ -79,7 +82,8 @@ public final class UserRepositoryMySQL
 
   @Override
   public Optional<UserModel> getById(final UserId userId) {
-    try (final PreparedStatement statement = connection.prepareStatement(SQL_SELECT_BY_ID)) {
+    try (final Connection connection = dataSource.getConnection();
+         final PreparedStatement statement = connection.prepareStatement(SQL_SELECT_BY_ID)) {
       statement.setString(1, userId.value());
       final ResultSet resultSet = statement.executeQuery();
       if (!resultSet.next()) {
@@ -93,7 +97,8 @@ public final class UserRepositoryMySQL
 
   @Override
   public Optional<UserModel> getByEmail(final UserEmail email) {
-    try (final PreparedStatement statement = connection.prepareStatement(SQL_SELECT_BY_EMAIL)) {
+    try (final Connection connection = dataSource.getConnection();
+         final PreparedStatement statement = connection.prepareStatement(SQL_SELECT_BY_EMAIL)) {
       statement.setString(1, email.value());
       final ResultSet resultSet = statement.executeQuery();
       if (!resultSet.next()) {
@@ -107,7 +112,8 @@ public final class UserRepositoryMySQL
 
   @Override
   public List<UserModel> getAll() {
-    try (final PreparedStatement statement = connection.prepareStatement(SQL_SELECT_ALL)) {
+    try (final Connection connection = dataSource.getConnection();
+         final PreparedStatement statement = connection.prepareStatement(SQL_SELECT_ALL)) {
       final ResultSet resultSet = statement.executeQuery();
       return UserPersistenceMapper.fromResultSetToModelList(resultSet);
     } catch (final SQLException exception) {
@@ -117,7 +123,8 @@ public final class UserRepositoryMySQL
 
   @Override
   public void delete(final UserId userId) {
-    try (final PreparedStatement statement = connection.prepareStatement(SQL_DELETE)) {
+    try (final Connection connection = dataSource.getConnection();
+         final PreparedStatement statement = connection.prepareStatement(SQL_DELETE)) {
       statement.setString(1, userId.value());
       statement.executeUpdate();
     } catch (final SQLException exception) {
@@ -126,7 +133,8 @@ public final class UserRepositoryMySQL
   }
 
   private void executeSave(final UserPersistenceDto dto) {
-    try (final PreparedStatement statement = connection.prepareStatement(SQL_INSERT)) {
+    try (final Connection connection = dataSource.getConnection();
+         final PreparedStatement statement = connection.prepareStatement(SQL_INSERT)) {
       statement.setString(1, dto.id());
       statement.setString(2, dto.name());
       statement.setString(3, dto.email());
@@ -140,7 +148,8 @@ public final class UserRepositoryMySQL
   }
 
   private void executeUpdate(final UserPersistenceDto dto) {
-    try (final PreparedStatement statement = connection.prepareStatement(SQL_UPDATE)) {
+    try (final Connection connection = dataSource.getConnection();
+         final PreparedStatement statement = connection.prepareStatement(SQL_UPDATE)) {
       statement.setString(1, dto.name());
       statement.setString(2, dto.email());
       statement.setString(3, dto.password());

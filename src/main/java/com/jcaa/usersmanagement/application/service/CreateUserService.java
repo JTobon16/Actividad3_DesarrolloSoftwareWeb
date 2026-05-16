@@ -11,14 +11,16 @@ import com.jcaa.usersmanagement.domain.valueobject.UserEmail;
 import jakarta.validation.ConstraintViolationException;
 import jakarta.validation.Validator;
 import lombok.RequiredArgsConstructor;
-import lombok.extern.java.Log;
+import lombok.extern.slf4j.Slf4j;
+import org.springframework.stereotype.Service;
 
 import java.util.Set;
 import jakarta.validation.ConstraintViolation;
 
-@Log
+@Slf4j
+@Service
 @RequiredArgsConstructor
-public final class CreateUserService implements CreateUserUseCase {
+public class CreateUserService implements CreateUserUseCase {
 
   private final SaveUserPort saveUserPort;
   private final GetUserByEmailPort getUserByEmailPort;
