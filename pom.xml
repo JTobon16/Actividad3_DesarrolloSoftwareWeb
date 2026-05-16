@@ -12,7 +12,7 @@
 
   <groupId>com.jcaa.usersmanagement</groupId>
   <artifactId>users-management</artifactId>
-  <version>2.0.0</version>
+  <version>2.1.0</version>
 
   <properties>
     <!-- El parent de Spring Boot usa java.version para configurar el compilador -->
@@ -84,6 +84,22 @@
       <groupId>at.favre.lib</groupId>
       <artifactId>bcrypt</artifactId>
       <version>${bcrypt.version}</version>
+    </dependency>
+
+    <!-- SpringDoc OpenAPI — Swagger UI en /swagger-ui.html -->
+    <dependency>
+      <groupId>org.springdoc</groupId>
+      <artifactId>springdoc-openapi-starter-webmvc-ui</artifactId>
+      <version>2.6.0</version>
+    </dependency>
+
+    <!-- Swagger annotations — declarada explícitamente para que el IDE las indexe
+         (springdoc-openapi la incluye transitivamente, pero algunos IDEs
+          necesitan verla directa en el pom para resolver los símbolos) -->
+    <dependency>
+      <groupId>io.swagger.core.v3</groupId>
+      <artifactId>swagger-annotations-jakarta</artifactId>
+      <version>2.2.22</version>
     </dependency>
 
     <!-- ======================================================== -->

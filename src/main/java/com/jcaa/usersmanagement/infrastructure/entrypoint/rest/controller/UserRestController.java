@@ -32,7 +32,7 @@ import java.util.List;
 @RestController
 @RequestMapping("/api/users")
 @RequiredArgsConstructor
-public class UserRestController {
+public class UserRestController implements UserRestControllerDocs {
 
   private final CreateUserUseCase createUserUseCase;
   private final UpdateUserUseCase updateUserUseCase;
