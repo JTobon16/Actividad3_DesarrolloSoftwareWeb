@@ -1,7 +1,7 @@
 package com.jcaa.usersmanagement.application.service;
 
-import com.jcaa.usersmanagement.application.port.EntradaCineRepositoryPort;
-import com.jcaa.usersmanagement.application.port.EntradaCineServicePort;
+import com.jcaa.usersmanagement.application.port.out.EntradaCineRepositoryPort;
+import com.jcaa.usersmanagement.application.port.in.EntradaCineServicePort;
 import com.jcaa.usersmanagement.domain.exception.EntradaCineAlreadyExistsException;
 import com.jcaa.usersmanagement.domain.exception.EntradaCineNotFoundException;
 import com.jcaa.usersmanagement.domain.model.EntradaCine;
