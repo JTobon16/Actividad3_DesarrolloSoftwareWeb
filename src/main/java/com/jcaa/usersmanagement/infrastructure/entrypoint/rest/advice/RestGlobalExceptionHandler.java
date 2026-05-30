@@ -17,13 +17,13 @@ import com.jcaa.usersmanagement.domain.exception.EntradaCineAlreadyExistsExcepti
 import java.time.LocalDateTime;
 import java.util.HashMap;
 import java.util.Map;
-import org.springframework.http.HttpStatus;
+
 import org.springframework.http.ResponseEntity;
 
 import java.util.stream.Collectors;
 
 @RestControllerAdvice
-public class GlobalExceptionHandler {
+public class RestGlobalExceptionHandler {
 
   @ExceptionHandler(UserNotFoundException.class)
   @ResponseStatus(HttpStatus.NOT_FOUND)
